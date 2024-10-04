@@ -62,6 +62,8 @@ export default class Game {
       enemy.update();
     });
 
+    this.drawStatusText(context);
+
     this.shooter.draw(context);
     this.shooter.move();
   }
@@ -93,5 +95,30 @@ export default class Game {
       projectile.x + projectile.width > alien.x &&
       projectile.x < alien.x + alien.width
     );
+  }
+
+  drawStatusText(context) {
+    context.save();
+    context.shadowOffsetX = 2;
+    context.shadowOffsetY = 2;
+    context.shadowColor = "black";
+    context.fillText("Score " + this.score, 20, 40);
+    context.fillText("Level " + this.level, this.width - 100, 40);
+    for (let i = 0; i < this.shooter.lives; i++) {
+      context.fillRect(20 + 20 * i, 60, 10, 20);
+    }
+    if (this.gameOver) {
+      context.textAlign = "center";
+      context.font = "100px Impact";
+      context.fillText("GAME OVER!", this.width * 0.5, this.height * 0.5);
+      context.font = "20px Impact";
+      context.fillText(
+        "Press R to restart!",
+        this.width * 0.5,
+        this.height * 0.5 + 30
+      );
+    }
+
+    context.restore();
   }
 }
