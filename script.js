@@ -1,5 +1,79 @@
 "use strict";
 
+class Beetlemorph {
+  constructor(game, x, y) {
+    this.game = game;
+    this.width = 60;
+    this.height = 60;
+    this.x = x;
+    this.y = y;
+    this.speed = 1;
+    this.lives = 2;
+    this.dead = false;
+    // Sprite sheet details
+    this.frameWidth = 80;
+    this.frameHeight = 80;
+    this.currentFrameX = 0;
+    this.frameY = 0;
+    this.spritSheetColumns = 3;
+    this.image = new Image();
+    this.image.src = "./images/beetlemorph.png";
+
+    // Animation control
+    this.frameInterval = 100;
+    this.frameCounter = 0;
+  }
+
+  draw(context) {
+    context.drawImage(
+      this.image,
+      this.currentFrameX * this.frameWidth * 0.7, // Correct the frame positioning
+      this.frameY,
+      this.frameWidth,
+      this.frameHeight,
+      this.x,
+      this.y,
+      this.width,
+      this.height
+    );
+  }
+
+  update() {
+    this.game.projectiles.forEach((projectile) => {
+      if (
+        !projectile.ready &&
+        this.game.checkCollision(this, projectile) &&
+        this.lives > 0
+      ) {
+        console.log(this.game.enemies);
+        projectile.reset();
+        this.lives--;
+      }
+
+      if (this.lives < 1 && !this.dead) {
+        this.updateFrame();
+        if (this.currentFrameX > 2) {
+          this.dead = true;
+          this.game.score++;
+        }
+      }
+    });
+    this.y += this.game.background.speed + this.speed;
+  }
+
+  updateFrame() {
+    // Increment the frame counter
+    this.frameCounter++;
+
+    // Only change frames when frameCounter reaches the frameInterval
+    if (this.frameCounter >= this.frameInterval) {
+      this.frameCounter = 0; // Reset the frame counter
+
+      this.currentFrameX = this.currentFrameX + 1;
+    }
+  }
+}
+
 class Projectile {
   constructor() {
     this.width = 3;
@@ -167,17 +241,20 @@ class Game {
     this.width = canvas.width;
     this.height = canvas.height;
     this.background = new Background(this);
+    this.score = 0;
+    this.level = 1;
+    this.gameOver = false;
 
     this.shooter = new Shooter(this);
     this.projectiles = [];
     this.numberOfProjecties = 10;
     this.createProjectiles();
     this.fired = false;
-    this.score = 0;
-    this.level = 1;
-    this.gameOver = false;
 
     this.keys = [];
+
+    this.enemies = [];
+    this.numberOfEnemies = 4;
 
     document.addEventListener("keydown", (e) => {
       if (!this.keys.includes(e.key)) {
@@ -208,6 +285,15 @@ class Game {
       projectile.move();
     });
 
+    if (this.enemies.length < 1) this.createEnemies();
+
+    this.enemies = this.enemies.filter((enemy) => !enemy.dead);
+
+    this.enemies.forEach((enemy) => {
+      enemy.draw(context);
+      enemy.update();
+    });
+
     this.shooter.draw(context);
     this.shooter.move();
   }
@@ -216,6 +302,29 @@ class Game {
     for (let i = 0; i < this.numberOfProjecties; i++) {
       this.projectiles.push(new Projectile());
     }
+  }
+
+  createEnemies() {
+    let x = 0;
+    let y = 0;
+    for (let i = 0; i < this.numberOfEnemies; i++) {
+      if (x + 50 >= this.width) {
+        x = 0;
+        y -= 100;
+      } else {
+        x += 100;
+      }
+      this.enemies.push(new Beetlemorph(this, x, -(Math.random() * 600)));
+    }
+  }
+
+  checkCollision(alien, projectile) {
+    return (
+      projectile.y <= alien.y + alien.height &&
+      projectile.y + projectile.height >= alien.y && // Ensure it's in alien's vertical range
+      projectile.x + projectile.width > alien.x &&
+      projectile.x < alien.x + alien.width
+    );
   }
 }
 
