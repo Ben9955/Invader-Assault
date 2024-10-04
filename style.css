@@ -1,6 +1,23 @@
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+body {
+  height: 100vh;
+}
+
 #myCanvas {
+  background: url("/images/background.png");
+  background-size: cover;
+
   position: absolute;
   top: 50%;
   left: 50%;
   translate: -50% -50%;
+}
+
+#gunAlien {
+  display: none;
 }
