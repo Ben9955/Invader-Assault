@@ -19,5 +19,5 @@ window.addEventListener("load", () => {
     requestAnimationFrame(animate);
   }
 
-  requestAnimationFrame(animate);
+  animate();
 });

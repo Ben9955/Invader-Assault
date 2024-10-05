@@ -2,6 +2,7 @@ import Background from "./background.js";
 import Shooter from "./shooter.js";
 import Projectile from "./projectile.js";
 import Beetlemorph from "./enemies/beetlemorph.js";
+import AlienShooter from "./enemies/alienShooter.js";
 
 export default class Game {
   constructor(canvas) {
@@ -20,7 +21,7 @@ export default class Game {
     this.fired = false;
 
     this.keys = [];
-
+    // this.keys.push(new AlienShooter(this));
     this.enemies = [];
     this.numberOfEnemies = 4;
 
@@ -86,6 +87,7 @@ export default class Game {
       }
       this.enemies.push(new Beetlemorph(this, x, -(Math.random() * 600)));
     }
+    this.enemies.push(new AlienShooter(this));
   }
 
   checkCollision(alien, projectile) {

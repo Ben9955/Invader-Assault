@@ -11,21 +11,21 @@ export default class Beetlemorph {
     // Sprite sheet details
     this.frameWidth = 80;
     this.frameHeight = 80;
-    this.currentFrameX = 0;
+    this.frameX = 0;
     this.frameY = 0;
     this.spritSheetColumns = 3;
     this.image = new Image();
     this.image.src = "./images/beetlemorph.png";
 
     // Animation control
-    this.frameInterval = 100;
+    this.frameInterval = 20;
     this.frameCounter = 0;
   }
 
   draw(context) {
     context.drawImage(
       this.image,
-      this.currentFrameX * this.frameWidth * 0.7, // Correct the frame positioning
+      this.frameX * this.frameWidth * 0.3, // Correct the frame positioning
       this.frameY,
       this.frameWidth,
       this.frameHeight,
@@ -43,14 +43,13 @@ export default class Beetlemorph {
         this.game.checkCollision(this, projectile) &&
         this.lives > 0
       ) {
-        console.log(this.game.enemies);
         projectile.reset();
         this.lives--;
       }
 
       if (this.lives < 1 && !this.dead) {
         this.updateFrame();
-        if (this.currentFrameX > 2) {
+        if (this.frameX > 2) {
           this.dead = true;
           this.game.score++;
         }
@@ -67,7 +66,7 @@ export default class Beetlemorph {
     if (this.frameCounter >= this.frameInterval) {
       this.frameCounter = 0; // Reset the frame counter
 
-      this.currentFrameX = this.currentFrameX + 1;
+      this.frameX = this.frameX + 1;
     }
   }
 }
