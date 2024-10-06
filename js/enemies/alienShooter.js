@@ -24,6 +24,10 @@ export default class AlienShooter {
     // Animation control
     this.frameInterval = 2; // Change frames every 10 game loops (adjust this to slow down)
     this.frameCounter = 0;
+
+    // Shooting control
+    this.shootCooldown = 30; // Set this to the desired cooldown duration
+    this.shootCooldownCounter = 0; // Timer to track the cooldown
   }
 
   draw(context) {
@@ -47,9 +51,9 @@ export default class AlienShooter {
 
   update() {
     const shooterPosition = this.game.shooter.x + this.game.shooter.width * 0.5;
-    if (shooterPosition >= this.x && shooterPosition <= this.x + this.width)
+    if (shooterPosition >= this.x && shooterPosition <= this.x + this.width) {
       this.status = "firing";
-    else {
+    } else {
       this.status = "passive";
     }
 
@@ -98,7 +102,21 @@ export default class AlienShooter {
       this.dead = true; // Only set dead when the last frame of the dying sprite sheet is reached
     }
 
-    this.move();
+    if (this.shootCooldownCounter > 0) {
+      this.shootCooldownCounter--; // Decrease the cooldown timer each frame
+    }
+
+    if (
+      this.status === "firing" &&
+      this.currentFrameX === this.spritSheetColumns - 2 &&
+      this.currentFrameY === this.spritSheetRows - 2 &&
+      this.shootCooldownCounter === 0 // Only shoot if cooldown has expired
+    ) {
+      this.shoot();
+      this.shootCooldownCounter = this.shootCooldown; // Reset the cooldown timer
+    }
+
+    if (this.status === "passive") this.move();
   }
 
   updateFrame() {
@@ -127,7 +145,21 @@ export default class AlienShooter {
       this.x += this.speed;
     } else {
       this.speed *= -1;
-      this.y += this.height * 0.5;
+      // this.y += this.height * 0.5;
+    }
+  }
+
+  shoot() {
+    const x = this.x + 20;
+    const y = this.y + this.height * 0.8;
+
+    for (let i = 0; i < this.game.alienProjectiles.length; i++) {
+      let projectile = this.game.alienProjectiles[i];
+      if (projectile.ready) {
+        projectile.start(x, y);
+        this.game.alienProjectiles[i + 1].start(this.x + this.width - 20, y);
+        return;
+      }
     }
   }
 }
