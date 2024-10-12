@@ -1,29 +1,41 @@
+import SpriteSheet from "../SpriteSheet.js";
+
 export default class AlienShooter {
-  constructor(game) {
+  constructor(game, x, y) {
     this.game = game;
-    this.width = 154;
-    this.height = 154;
-    this.x = 200;
-    this.y = 10;
-    this.speed = 2;
-    this.lives = 5;
+    this.width = 354;
+    this.height = 318;
+    this.x = x + this.width >= this.game.width ? x - this.width : x;
+    this.y = y;
+    this.speedX = 5;
+    this.speedY = 2;
+    this.maxLives = 5;
+    this.lives = this.maxLives;
     this.status = "passive";
-    this.previousStatus = this.status;
     this.dead = false;
 
-    // Sprite sheet details
-    this.frameWidth = 354;
-    this.frameHeight = 318;
-    this.currentFrameX = 0;
-    this.currentFrameY = 0;
-    this.spritSheetRows = 4;
-    this.spritSheetColumns = 7;
-    this.image = new Image();
-    this.image.src = "./images/gun-alien-passive.png";
+    this.passiveSpriteSheet = new SpriteSheet(new Image(), 100, 354, 318, 7, 4);
+    this.shootingSpriteSheet = new SpriteSheet(new Image(), 50, 354, 354, 5, 5);
+    this.dyingSpriteSheet = new SpriteSheet(new Image(), 50, 354, 318, 7, 2);
 
-    // Animation control
-    this.frameInterval = 2; // Change frames every 10 game loops (adjust this to slow down)
-    this.frameCounter = 0;
+    // Load images for each sprite sheet
+    this.shootingSpriteSheet.image.src = "./images/gun-alien-firing.png";
+    this.dyingSpriteSheet.image.src = "./images/gun-alien-dying.png";
+    this.passiveSpriteSheet.image.src = "./images/gun-alien-passive.png";
+
+    this.passiveSpriteSheet.width = this.passiveSpriteSheet.width / 2;
+    this.passiveSpriteSheet.height = this.passiveSpriteSheet.height / 2;
+    this.dyingSpriteSheet.width = this.dyingSpriteSheet.width / 2;
+    this.dyingSpriteSheet.height = this.dyingSpriteSheet.height / 2;
+    this.shootingSpriteSheet.width = this.shootingSpriteSheet.width / 2;
+    this.shootingSpriteSheet.height = this.shootingSpriteSheet.height / 2;
+
+    // Set the current sprite sheet to moving by default
+    this.currentSpriteSheet = this.passiveSpriteSheet;
+
+    // Sound explosion
+    this.monsterScream = new Audio("./sounds/enemy-death.wav"); // Load sound file
+    this.monsterScream.volume = 1; // Adjust volume (optional)
 
     // Shooting control
     this.shootCooldown = 30; // Set this to the desired cooldown duration
@@ -31,50 +43,59 @@ export default class AlienShooter {
   }
 
   draw(context) {
-    if (!this.dead) {
-      const sheetX = this.currentFrameX * this.frameWidth;
-      const sheetY = this.currentFrameY * this.frameHeight;
+    if (this.dead) return;
 
-      context.drawImage(
-        this.image,
-        sheetX,
-        sheetY,
-        this.frameWidth,
-        this.frameHeight,
-        this.x,
-        this.y,
-        this.width,
-        this.height
-      );
+    switch (this.status) {
+      case "dying":
+        this.currentSpriteSheet = this.dyingSpriteSheet;
+        break;
+      case "firing":
+        this.currentSpriteSheet = this.shootingSpriteSheet;
+        break;
+      case "passive":
+      default:
+        this.currentSpriteSheet = this.passiveSpriteSheet;
+        break;
     }
+
+    // Draw the current frame of the selected sprite sheet
+    if (this.currentSpriteSheet)
+      this.currentSpriteSheet.draw(context, this.x, this.y);
+
+    context.save();
+
+    // Draw the outline (border) of the rectangle above the enemy
+    const rectWidth = 50;
+    const rectHeight = 10;
+    const rectX = this.x + (this.width - rectWidth) / 2; // Center the rectangle above the enemy
+    const rectY = this.y - 10; // Position 20 pixels above the enemy's y-coordinate
+
+    // Draw the rectangle outline (border)
+    context.strokeStyle = "black"; // Set the color of the border
+    context.lineWidth = 2; // Set the thickness of the border
+    context.strokeRect(rectX, rectY, rectWidth, rectHeight); // Draw the border
+
+    // Dynamically fill the rectangle based on enemy's health
+    const healthPercent = this.lives / this.maxLives; // Calculate the health percentage
+    const fillWidth = rectWidth * healthPercent; // Calculate the width based on the health
+
+    // Draw the filled part inside the rectangle
+    context.fillStyle = healthPercent < 0.5 ? "red" : "green"; // Set the fill color (e.g., green for health)
+    context.fillRect(rectX, rectY, fillWidth, rectHeight); // Draw the filled rectangle
+    context.restore();
   }
 
-  update() {
+  update(timeElapsed) {
+    this.currentSpriteSheet.update(timeElapsed);
+
     const shooterPosition = this.game.shooter.x + this.game.shooter.width * 0.5;
+
     if (shooterPosition >= this.x && shooterPosition <= this.x + this.width) {
       this.status = "firing";
     } else {
       this.status = "passive";
     }
 
-    // Only update image and sprite sheet details when status changes
-    if (this.status !== this.previousStatus) {
-      this.previousStatus = this.status;
-
-      if (this.status === "firing") {
-        this.image.src = "./images/gun-alien-firing.png";
-        this.frameHeight = 354;
-        this.spritSheetColumns = 5;
-        this.spritSheetRows = 5;
-      } else if (this.status === "passive") {
-        this.image.src = "./images/gun-alien-passive.png";
-        this.frameHeight = 318;
-        this.spritSheetColumns = 7;
-        this.spritSheetRows = 4;
-      }
-    }
-
-    this.updateFrame();
     this.game.projectiles.forEach((projectile) => {
       if (
         !projectile.ready &&
@@ -87,17 +108,18 @@ export default class AlienShooter {
     });
 
     if (this.lives < 1) {
+      // Play sound
+      this.monsterScream.currentTime = 0; // Reset sound to start (in case it's still playing)
+      this.monsterScream.play(); // Play sound
       this.status = "dying";
-      this.image.src = "./images/gun-alien-dying.png";
-      this.frameHeight = 318;
-      this.spritSheetColumns = 7; // Number of columns in dying sprite sheet
-      this.spritSheetRows = 2; // Number of rows in dying sprite sheet
     }
 
     if (
       this.status === "dying" &&
-      this.currentFrameX === this.spritSheetColumns - 1 &&
-      this.currentFrameY === this.spritSheetRows - 1
+      this.currentSpriteSheet.currentFrameX ===
+        this.currentSpriteSheet.framesX - 1 &&
+      this.currentSpriteSheet.currentFrameY ===
+        this.currentSpriteSheet.framesY - 1
     ) {
       this.dead = true; // Only set dead when the last frame of the dying sprite sheet is reached
     }
@@ -106,52 +128,74 @@ export default class AlienShooter {
       this.shootCooldownCounter--; // Decrease the cooldown timer each frame
     }
 
-    if (
-      this.status === "firing" &&
-      this.currentFrameX === this.spritSheetColumns - 2 &&
-      this.currentFrameY === this.spritSheetRows - 2 &&
-      this.shootCooldownCounter === 0 // Only shoot if cooldown has expired
-    ) {
-      this.shoot();
-      this.shootCooldownCounter = this.shootCooldown; // Reset the cooldown timer
+    if (this.game.shooter.lives > 0) {
+      if (
+        this.status === "firing" &&
+        this.currentSpriteSheet.currentFrameX ===
+          this.currentSpriteSheet.framesX - 2 &&
+        this.currentSpriteSheet.currentFrameY ===
+          this.currentSpriteSheet.framesY - 2 &&
+        this.shootCooldownCounter === 0 // Only shoot if cooldown has expired
+      ) {
+        this.shoot();
+        this.shootCooldownCounter = this.shootCooldown; // Reset the cooldown timer
+      }
+    } else {
+      this.status = "passive";
     }
+
+    this.height = this.currentSpriteSheet.height;
+    this.width = this.currentSpriteSheet.width;
 
     if (this.status === "passive") this.move();
   }
 
-  updateFrame() {
-    // Increment the frame counter
-    this.frameCounter++;
+  move() {
+    // if (this.y < 0 && this.y >= this.height * -1) this.speedY = 10;
+    // else this.speedY = 2;
 
-    // Only change frames when frameCounter reaches the frameInterval
-    if (this.frameCounter >= this.frameInterval) {
-      this.frameCounter = 0; // Reset the frame counter
+    // Ensure aliens only move horizontally if their y position is 0 or higher
+    if (this.y >= 20) {
+      const otherEnemies = this.game.enemies.filter((enemy) => enemy !== this);
 
-      // Update the current frame
-      this.currentFrameX = (this.currentFrameX + 1) % this.spritSheetColumns;
+      // Check for potential collisions with other aliens
+      const willCollideWithAnotherAlien = otherEnemies.some((enemy) => {
+        const futureX = this.x + this.speedX;
 
-      // Move to the next row when the current row is done
-      if (this.currentFrameX === 0) {
-        this.currentFrameY = (this.currentFrameY + 1) % this.spritSheetRows;
+        const horizontalOverlap =
+          futureX < enemy.x + enemy.width && futureX + this.width > enemy.x;
+
+        const verticalOverlap =
+          this.y < enemy.y + enemy.height && this.y + this.height > enemy.y;
+
+        return horizontalOverlap && verticalOverlap;
+      });
+
+      // Check if the alien hits the game screen edges
+      const willHitEdge =
+        this.x + this.speedX + this.width > this.game.width ||
+        this.x + this.speedX < 0;
+
+      // Move horizontally if no collision and no edge hit
+      if (!willCollideWithAnotherAlien && !willHitEdge) {
+        this.x += this.speedX;
+      } else {
+        // Reverse direction and move down if a collision or edge is detected
+        this.speedX *= -1; // Reverse horizontal direction
+        // this.y += this.speedY; // Move down by half the height when changing direction
       }
     }
-  }
 
-  move() {
-    if (
-      this.x + this.speed + this.width < this.game.width &&
-      this.x + this.speed > 0
-    ) {
-      this.x += this.speed;
-    } else {
-      this.speed *= -1;
-      // this.y += this.height * 0.5;
+    // Continue moving downwards until y reaches 0
+    else {
+      // this.y += this.speedY; // Move down until y is 0 or higher
+      this.y += 5;
     }
   }
 
   shoot() {
     const x = this.x + 20;
-    const y = this.y + this.height * 0.8;
+    const y = this.y + this.shootingSpriteSheet.height * 0.8;
 
     for (let i = 0; i < this.game.alienProjectiles.length; i++) {
       let projectile = this.game.alienProjectiles[i];

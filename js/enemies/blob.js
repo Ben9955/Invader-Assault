@@ -1,58 +1,84 @@
+import SpriteSheet from "../SpriteSheet.js";
+
 export default class Blob {
-  constructor(game) {
+  constructor(game, x, y) {
     this.game = game;
-    this.width = 200;
-    this.height = 244;
-    this.x = 250;
-    this.y = 20;
-    this.speed = 2;
-    this.lives = 5;
+    this.width = 354;
+    this.height = 318;
+    this.x = x + this.width >= this.game.width ? x - this.width : x;
+    this.y = y;
+    this.speedX = 3;
+    this.speedY = 2;
+    this.maxLives = 10;
+    this.lives = this.maxLives;
+    this.status = "passive";
     this.dead = false;
     this.isDying = false;
 
-    // Sprite sheet details
-    this.frameWidth = 200;
-    this.frameHeight = 244;
-    this.currentFrameX = 0;
-    this.currentFrameY = 0;
-    this.spritSheetRows = 4;
-    this.spritSheetColumns = 9;
-    this.image = new Image();
-    this.image.src = "./images/blob-alien-passive.png";
+    this.passiveSpriteSheet = new SpriteSheet(new Image(), 100, 200, 244, 9, 4);
+    this.explodingSpriteSheet = new SpriteSheet(
+      new Image(),
+      50,
+      300,
+      300,
+      6,
+      2
+    );
 
-    this.explodeFrameWidth = 300;
-    this.explodeFrameHeight = 300;
-    this.explodeSpritSheetRows = 2;
-    this.explodeSpritSheetColumns = 6;
-    this.explodeImage = new Image();
-    this.explodeImage.src = "./images/blob-alien-explode.png";
+    // Load images for each sprite sheet
+    this.explodingSpriteSheet.image.src = "./images/blob-alien-explode.png";
+    this.passiveSpriteSheet.image.src = "./images/blob-alien-passive.png";
 
-    // Animation control
-    this.frameInterval = 2; // Change frames every 10 game loops (adjust this to slow down)
-    this.frameCounter = 0;
+    this.passiveSpriteSheet.width = this.passiveSpriteSheet.width / 2;
+    this.passiveSpriteSheet.height = this.passiveSpriteSheet.height / 2;
+    this.explodingSpriteSheet.width = this.explodingSpriteSheet.width / 2;
+    this.explodingSpriteSheet.height = this.explodingSpriteSheet.height / 2;
+    // Set the current sprite sheet to moving by default
+    this.currentSpriteSheet = this.passiveSpriteSheet;
+
+    // Sound explosion
+    this.explosion = new Audio("./sounds/mixkit-sea-mine-explosion-1184.wav"); // Load sound file
+    this.explosion.volume = 1; // Adjust volume (optional)
   }
 
   draw(context) {
-    if (!this.dead) {
-      const sheetX = this.currentFrameX * this.frameWidth;
-      const sheetY = this.currentFrameY * this.frameHeight;
+    // if (this.y < 0 && this.y >= this.height * -1) this.y += 10;
 
-      context.drawImage(
-        this.image,
-        sheetX,
-        sheetY,
-        this.frameWidth,
-        this.frameHeight,
-        this.x,
-        this.y,
-        this.width,
-        this.height
-      );
-    }
+    if (this.dead) return;
+    if (this.status === "passive")
+      this.currentSpriteSheet = this.passiveSpriteSheet;
+    else this.currentSpriteSheet = this.explodingSpriteSheet;
+
+    // Draw the current frame of the selected sprite sheet
+    if (this.currentSpriteSheet)
+      this.currentSpriteSheet.draw(context, this.x, this.y);
+
+    context.save();
+
+    // Draw the outline (border) of the rectangle above the enemy
+    const rectWidth = 50;
+    const rectHeight = 10;
+    const rectX = this.x + (this.width - rectWidth) / 2; // Center the rectangle above the enemy
+    const rectY = this.y - 20; // Position 20 pixels above the enemy's y-coordinate
+
+    // Draw the rectangle outline (border)
+    context.strokeStyle = "black"; // Set the color of the border
+    context.lineWidth = 2; // Set the thickness of the border
+    context.strokeRect(rectX, rectY, rectWidth, rectHeight); // Draw the border
+
+    // Dynamically fill the rectangle based on enemy's health
+    const healthPercent = this.lives / this.maxLives; // Calculate the health percentage
+    const fillWidth = rectWidth * healthPercent; // Calculate the width based on the health
+
+    // Draw the filled part inside the rectangle
+    context.fillStyle = healthPercent < 0.5 ? "red" : "green"; // Set the fill color (e.g., green for health)
+    context.fillRect(rectX, rectY, fillWidth, rectHeight); // Draw the filled rectangle
+    context.restore();
   }
 
-  update() {
-    this.updateFrame();
+  update(timeElapsed) {
+    this.currentSpriteSheet.update(timeElapsed);
+
     this.game.projectiles.forEach((projectile) => {
       if (
         !projectile.ready &&
@@ -65,54 +91,56 @@ export default class Blob {
     });
 
     if (this.lives < 1) {
-      this.image = this.explodeImage;
-      this.width = this.explodeFrameWidth;
-      this.height = this.explodeFrameHeight;
-      this.frameHeight = this.explodeFrameHeight;
-      this.frameWidth = this.explodeFrameWidth;
-      this.spritSheetColumns = this.explodeSpritSheetColumns;
-      this.spritSheetRows = this.explodeSpritSheetRows;
-      this.isDying = true;
+      this.status = "exploding";
+      // Play sound
+      this.explosion.currentTime = 0; // Reset sound to start (in case it's still playing)
+      this.explosion.play(); // Play sound
     }
 
     if (
-      this.isDying &&
-      this.currentFrameX === this.spritSheetColumns - 1 &&
-      this.currentFrameY === this.spritSheetRows - 1
+      this.status === "exploding" &&
+      this.currentSpriteSheet.currentFrameX ===
+        this.currentSpriteSheet.framesX - 1 &&
+      this.currentSpriteSheet.currentFrameY ===
+        this.currentSpriteSheet.framesY - 1
     ) {
       this.dead = true; // Only set dead when the last frame of the dying sprite sheet is reached
     }
 
-    this.move();
-  }
+    this.height = this.currentSpriteSheet.height;
+    this.width = this.currentSpriteSheet.width;
 
-  updateFrame() {
-    // Increment the frame counter
-    this.frameCounter++;
-
-    // Only change frames when frameCounter reaches the frameInterval
-    if (this.frameCounter >= this.frameInterval) {
-      this.frameCounter = 0; // Reset the frame counter
-
-      // Update the current frame
-      this.currentFrameX = (this.currentFrameX + 1) % this.spritSheetColumns;
-
-      // Move to the next row when the current row is done
-      if (this.currentFrameX === 0) {
-        this.currentFrameY = (this.currentFrameY + 1) % this.spritSheetRows;
-      }
+    if (this.status === "passive") {
+      this.move();
     }
   }
 
   move() {
-    if (
-      this.x + this.speed + this.width < this.game.width &&
-      this.x + this.speed > 0
-    ) {
-      this.x += this.speed;
+    const otherEnemies = this.game.enemies.filter((enemy) => enemy !== this);
+
+    const willCollideWithAnotherAlien = otherEnemies.some((enemy) => {
+      const horizontalOverlap =
+        this.x + this.speedX < enemy.x + enemy.width &&
+        this.x + this.speedX + this.width > enemy.x;
+
+      const verticalOverlap =
+        this.y + this.speedY < enemy.y + enemy.height &&
+        this.y + this.speedY + this.height > enemy.y;
+
+      return horizontalOverlap && verticalOverlap;
+    });
+
+    // Check if the alien hits the game screen edges
+    const willHitEdge =
+      this.x + this.speedX + this.width > this.game.width ||
+      this.x + this.speedX < 0;
+
+    if (!willCollideWithAnotherAlien && !willHitEdge) {
+      this.x += this.speedX;
+      this.y += this.speedY / 2;
     } else {
-      this.speed *= -1;
-      this.y += this.height * 0.5;
+      this.speedX *= -1;
+      this.y += this.speedY * 2;
     }
   }
 }

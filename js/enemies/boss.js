@@ -1,8 +1,8 @@
 export default class Boss {
   constructor(game) {
     this.game = game;
-    this.width = 250;
-    this.height = 265;
+    this.width = 200;
+    this.height = 212;
     this.x = 250;
     this.y = 20;
     this.speed = 2;
@@ -108,7 +108,20 @@ export default class Boss {
   }
 
   move() {
+    const otherEnemies = this.game.enemies.filter((enemy) => enemy !== this);
+    const willCollideWithAnotherAlien = otherEnemies.some((enemy) => {
+      const horizontalOverlap =
+        this.x + this.speed < enemy.x + enemy.width &&
+        this.x + this.speed + this.width > enemy.x;
+
+      const verticalOverlap =
+        this.y < enemy.y + enemy.height && this.y + this.height > enemy.y;
+
+      return horizontalOverlap && verticalOverlap;
+    });
+
     if (
+      !willCollideWithAnotherAlien &&
       this.x + this.speed + this.width < this.game.width &&
       this.x + this.speed > 0
     ) {
