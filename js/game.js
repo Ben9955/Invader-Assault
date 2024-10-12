@@ -1,8 +1,14 @@
 import Background from "./background.js";
 import Shooter from "./shooter.js";
-import Projectile from "./projectile.js";
+import Projectile from "./projectiles/projectile.js";
 import Beetlemorph from "./enemies/beetlemorph.js";
 import AlienShooter from "./enemies/alienShooter.js";
+import Blob from "./enemies/blob.js";
+import Boss from "./enemies/boss.js";
+import BossBullet from "./projectiles/bossBullet.js";
+import AlienBullet from "./projectiles/alienBullet.js";
+import Asteroid from "./spaceObjects/asteroid.js";
+import Comet from "./spaceObjects/comet.js";
 
 export default class Game {
   constructor(canvas) {
@@ -13,17 +19,46 @@ export default class Game {
     this.score = 0;
     this.level = 1;
     this.gameOver = false;
+    this.keys = [];
 
     this.shooter = new Shooter(this);
+
     this.projectiles = [];
-    this.numberOfProjecties = 10;
+    this.bossProjectiles = [];
+    this.alienProjectiles = [];
+    this.numberOfProjecties = 8;
     this.createProjectiles();
     this.fired = false;
 
-    this.keys = [];
-    // this.keys.push(new AlienShooter(this));
     this.enemies = [];
-    this.numberOfEnemies = 4;
+    this.asteroid = new Asteroid(this);
+
+    this.levels = [
+      //  levels configuration
+      {
+        Beetlemorph: 5,
+      },
+      {
+        Beetlemorph: 8,
+      },
+      {
+        Beetlemorph: 5,
+        AlienShooter: 2,
+      },
+      {
+        Beetlemorph: 2,
+        // Blob: 2,
+        // AlienShooter: 2,
+      },
+      {
+        Beetlemorph: 2,
+        // Blob: 2,
+        AlienShooter: 2,
+      },
+
+      { Boss: 1 },
+    ];
+    this.currentLevel = 4;
 
     document.addEventListener("keydown", (e) => {
       if (!this.keys.includes(e.key)) {
@@ -43,9 +78,12 @@ export default class Game {
       const index = this.keys.indexOf(e.key);
       if (index > -1) this.keys.splice(index, 1);
     });
+
+    this.createEnemies();
   }
 
-  render(context) {
+  render(context, timeElapsed) {
+    if (this.enemies.length === 0) this.nextLevel();
     this.background.update(); // Update background position
     this.background.draw(context); // Draw the scrolling background
 
@@ -54,48 +92,123 @@ export default class Game {
       projectile.move();
     });
 
-    if (this.enemies.length < 1) this.createEnemies();
+    this.bossProjectiles.forEach((projectile) => {
+      projectile.draw(context);
+      projectile.move();
+    });
 
-    this.enemies = this.enemies.filter((enemy) => !enemy.dead);
+    this.alienProjectiles.forEach((projectile) => {
+      projectile.draw(context);
+      projectile.move();
+    });
+
+    this.enemies = this.enemies.filter((enemy) => {
+      return !enemy.dead;
+    });
+
+    if (!this.asteroid.exploded) {
+      this.asteroid.draw(context);
+      this.asteroid.update(timeElapsed);
+    }
 
     this.enemies.forEach((enemy) => {
       enemy.draw(context);
-      enemy.update();
+      enemy.update(timeElapsed);
     });
 
     this.drawStatusText(context);
 
     this.shooter.draw(context);
-    this.shooter.move();
+    this.shooter.update(timeElapsed);
   }
 
   createProjectiles() {
     for (let i = 0; i < this.numberOfProjecties; i++) {
       this.projectiles.push(new Projectile());
+      this.bossProjectiles.push(new BossBullet(this));
+      this.alienProjectiles.push(new AlienBullet(this));
     }
   }
 
   createEnemies() {
-    let x = 0;
-    let y = 0;
-    for (let i = 0; i < this.numberOfEnemies; i++) {
-      if (x + 50 >= this.width) {
-        x = 0;
-        y -= 100;
-      } else {
-        x += 100;
+    const occupiedPositions = []; // Store occupied x positions
+
+    const level = this.levels[this.currentLevel - 1];
+    for (let enemyType in level) {
+      const numberOfEnemies = level[enemyType];
+
+      for (let i = 0; i < numberOfEnemies; i++) {
+        let enemy; // Declare the enemy variable
+        let x, y; // Default y position
+        let isPositionValid = false;
+
+        // Create the enemy instance once
+        enemy = this.createAlien(enemyType, 0, y); // Initialize at (0, y)
+        enemy.y = Math.random() * enemy.height * -1;
+        while (!isPositionValid) {
+          // Randomly generate an x position ensuring it stays within the canvas width
+          x = Math.random() * (this.width - enemy.width); // Ensure it fits within the canvas
+          enemy.x = x; // Update enemy's x position
+
+          // Check if the new enemy overlaps with already occupied positions
+          if (
+            !this.checkCollisionWithOccupiedPositions(enemy, occupiedPositions)
+          ) {
+            occupiedPositions.push({ x: enemy.x, width: enemy.width }); // Store the valid position
+            isPositionValid = true; // Valid position found
+          }
+        }
+
+        this.enemies.push(enemy); // Finally, add the valid enemy to the enemies array
       }
-      this.enemies.push(new Beetlemorph(this, x, -(Math.random() * 600)));
     }
-    this.enemies.push(new AlienShooter(this));
   }
 
-  checkCollision(alien, projectile) {
+  // Check if the new enemy overlaps with occupied positions
+  checkCollisionWithOccupiedPositions(newEnemy, occupiedPositions) {
+    for (let occupied of occupiedPositions) {
+      if (
+        newEnemy.x < occupied.x + occupied.width &&
+        newEnemy.x + newEnemy.width > occupied.x
+      ) {
+        return true; // There is an overlap
+      }
+    }
+    return false; // No overlap
+  }
+
+  createAlien(type, x, y) {
+    let enemy;
+    switch (type) {
+      case "Beetlemorph":
+        enemy = new Beetlemorph(this, x, y);
+        break;
+
+      case "Blob":
+        enemy = new Blob(this, x, y);
+        break;
+      case "AlienShooter":
+        enemy = new AlienShooter(this, x, y);
+        break;
+      case "Boss":
+        enemy = new Boss(this, x, y); // Boss might have specific positioning
+        break;
+      default:
+        console.log(
+          "Alien type Error in the createAlien method of the Game class"
+        ); // Default to Beetlemorph
+        break;
+    }
+
+    return enemy;
+  }
+
+  checkCollision(target, projectile) {
     return (
-      projectile.y <= alien.y + alien.height &&
-      projectile.y + projectile.height >= alien.y && // Ensure it's in alien's vertical range
-      projectile.x + projectile.width > alien.x &&
-      projectile.x < alien.x + alien.width
+      projectile.y <= target.y + target.height &&
+      projectile.y + projectile.height >= target.y && // Ensure it's in alieen's vertical range
+      projectile.x + projectile.width > target.x &&
+      projectile.x < target.x + target.width
     );
   }
 
@@ -105,7 +218,7 @@ export default class Game {
     context.shadowOffsetY = 2;
     context.shadowColor = "black";
     context.fillText("Score " + this.score, 20, 40);
-    context.fillText("Level " + this.level, this.width - 100, 40);
+    context.fillText("Level " + this.currentLevel, this.width - 100, 40);
     for (let i = 0; i < this.shooter.lives; i++) {
       context.fillRect(20 + 20 * i, 60, 10, 20);
     }
@@ -122,5 +235,15 @@ export default class Game {
     }
 
     context.restore();
+  }
+
+  // Move to next level
+  nextLevel() {
+    this.currentLevel++;
+    if (this.currentLevel <= this.levels.length) {
+      this.createEnemies();
+    } else {
+      this.winGame(); // Trigger win condition when all levels are completed
+    }
   }
 }
