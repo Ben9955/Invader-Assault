@@ -1,7 +1,7 @@
 export default class AlienBullet {
   constructor(game) {
     this.game = game;
-    this.width = 3;
+    this.width = 6;
     this.height = 15;
     this.x = 0;
     this.y = 0;

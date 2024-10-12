@@ -1,11 +1,11 @@
 export default class BossBullet {
   constructor(game) {
     this.game = game;
-    this.width = 50;
-    this.height = 136;
+    this.width = 30;
+    this.height = 82;
     this.x = -100;
     this.y = 0;
-    this.speed = 12;
+    this.speed = 15;
     this.ready = true;
 
     // Sprite sheet details
