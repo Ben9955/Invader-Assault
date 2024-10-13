@@ -9,6 +9,7 @@ import BossBullet from "./projectiles/bossBullet.js";
 import AlienBullet from "./projectiles/alienBullet.js";
 import Asteroid from "./spaceObjects/asteroid.js";
 import Comet from "./spaceObjects/comet.js";
+import PowerUp from "./powerUp.js";
 
 export default class Game {
   constructor(canvas) {
@@ -39,11 +40,11 @@ export default class Game {
         Beetlemorph: 5,
       },
       {
-        Beetlemorph: 8,
+        Beetlemorph: 3,
       },
       {
-        Beetlemorph: 5,
-        AlienShooter: 2,
+        Blob: 3,
+        // AlienShooter: 2,
       },
       {
         Beetlemorph: 2,
@@ -51,14 +52,16 @@ export default class Game {
         // AlienShooter: 2,
       },
       {
-        Beetlemorph: 2,
+        // Beetlemorph: 2,
         // Blob: 2,
         AlienShooter: 2,
       },
 
       { Boss: 1 },
     ];
-    this.currentLevel = 4;
+    this.currentLevel = 3;
+
+    this.powerUps = [];
 
     document.addEventListener("keydown", (e) => {
       if (!this.keys.includes(e.key)) {
@@ -106,6 +109,11 @@ export default class Game {
       return !enemy.dead;
     });
 
+    this.powerUps.forEach((powerUp) => {
+      powerUp.update();
+      powerUp.draw(context);
+    });
+
     if (!this.asteroid.exploded) {
       this.asteroid.draw(context);
       this.asteroid.update(timeElapsed);
@@ -131,6 +139,7 @@ export default class Game {
   }
 
   createEnemies() {
+    console.log(this.levels.length, this.currentLevel);
     const occupiedPositions = []; // Store occupied x positions
 
     const level = this.levels[this.currentLevel - 1];
@@ -245,5 +254,13 @@ export default class Game {
     } else {
       this.winGame(); // Trigger win condition when all levels are completed
     }
+  }
+
+  generatePowerUp(x, y) {
+    this.powerUps.push(new PowerUp(this, x, y));
+  }
+
+  removePowerUp(powerup) {
+    this.powerUps = this.powerUps.filter((powerUp) => !powerup);
   }
 }

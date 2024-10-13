@@ -14,7 +14,7 @@ export default class Asteroid {
     this.image = new Image();
     this.image.src = "./images/asteroid-base.png";
 
-    this.explodeSpriteSheet = new SpriteSheet(new Image(), 700, 96, 96, 8);
+    this.explodeSpriteSheet = new SpriteSheet(new Image(), 150, 96, 96, 8);
     // Load images for each sprite sheet
     this.explodeSpriteSheet.image.src = "./images/asteroid-explode.png";
   }
@@ -34,11 +34,10 @@ export default class Asteroid {
         this.exploding = true;
         projectile.reset();
       }
+    });
 
-      if (this.exploding && !this.exploded) {
-        this.explodeSpriteSheet.update(timeElapsed);
-        console.log(this.explodeSpriteSheet.currentFrameX);
-      }
+    if (this.exploding && !this.exploded) {
+      this.explodeSpriteSheet.update(timeElapsed);
       if (
         this.exploding &&
         this.explodeSpriteSheet.currentFrameX ===
@@ -46,8 +45,14 @@ export default class Asteroid {
       ) {
         this.exploded = true;
         this.game.score++;
+
+        // generate power-up with a certain probability
+        if (Math.random() < 0.4) {
+          // 25% chance to get a power up
+          this.game.generatePowerUp(this.x, this.y); // generate it at asteroid's position
+        }
       }
-    });
+    }
     if (!this.exploding) this.y += this.game.background.speed + this.speed;
   }
 }
