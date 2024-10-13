@@ -12,10 +12,10 @@ export default class Shooter {
     this.status = "moving"; // Initial status
 
     // Initialize sprite sheets for different animations
-    this.shootingSpriteSheet = new SpriteSheet(new Image(), 50, 56, 114, 4);
+    this.shootingSpriteSheet = new SpriteSheet(new Image(), 70, 56, 114, 4);
     this.damagedSpriteSheet = new SpriteSheet(new Image(), 70, 73, 121, 10);
     this.destroyedSpriteSheet = new SpriteSheet(new Image(), 70, 150, 145, 10);
-    this.movingSpriteSheet = new SpriteSheet(new Image(), 100, 56, 114, 6);
+    this.movingSpriteSheet = new SpriteSheet(new Image(), 80, 56, 114, 6);
     this.evasionSpriteSheet = new SpriteSheet(new Image(), 50, 56, 114, 9);
 
     // Load images for each sprite sheet
@@ -114,15 +114,13 @@ export default class Shooter {
       if (this.x < this.game.canvas.width - this.width) {
         this.x += this.speed;
       }
-    } else {
-      if (
-        this.isTurningLeft ||
-        (this.isTurningRight && this.status === "movingSideways")
-      ) {
-        this.status = "moving";
-        this.isTurningLeft = false;
-        this.isTurningRight = false;
-      }
+    } else if (
+      this.isTurningLeft ||
+      (this.isTurningRight && this.status === "movingSideways")
+    ) {
+      this.status = "moving";
+      this.isTurningLeft = false;
+      this.isTurningRight = false;
     }
 
     if (this.status !== "destroyed")
@@ -150,7 +148,7 @@ export default class Shooter {
 
     if (
       this.status === "shooting" &&
-      this.currentSpriteSheet.currentFrameX === 3
+      this.currentSpriteSheet.currentFrameX >= 3
     ) {
       this.status = "moving";
     }
@@ -187,5 +185,10 @@ export default class Shooter {
         return;
       }
     }
+  }
+
+  applyDamage(damage) {
+    this.status = "damage";
+    this.lives -= damage;
   }
 }

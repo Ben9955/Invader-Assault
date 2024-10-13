@@ -10,6 +10,8 @@ export default class Blob {
     this.speedX = 3;
     this.speedY = 2;
     this.maxLives = 10;
+    this.explosionDamage = 3;
+    this.collisionWithShooter = false;
     this.lives = this.maxLives;
     this.status = "passive";
     this.dead = false;
@@ -31,8 +33,7 @@ export default class Blob {
 
     this.passiveSpriteSheet.width = this.passiveSpriteSheet.width / 2;
     this.passiveSpriteSheet.height = this.passiveSpriteSheet.height / 2;
-    this.explodingSpriteSheet.width = this.explodingSpriteSheet.width / 2;
-    this.explodingSpriteSheet.height = this.explodingSpriteSheet.height / 2;
+
     // Set the current sprite sheet to moving by default
     this.currentSpriteSheet = this.passiveSpriteSheet;
 
@@ -90,6 +91,12 @@ export default class Blob {
       }
     });
 
+    // Check for collisions with the shooter
+    if (this.game.checkCollision(this, this.game.shooter)) {
+      this.collisionWithShooter = true;
+      this.lives = 0;
+    }
+
     if (this.lives < 1) {
       this.status = "exploding";
       // Play sound
@@ -104,6 +111,10 @@ export default class Blob {
       this.currentSpriteSheet.currentFrameY ===
         this.currentSpriteSheet.framesY - 1
     ) {
+      // Check for collisions during explosion with the shooter
+      if (this.collisionWithShooter) {
+        this.game.shooter.applyDamage(this.explosionDamage); // Shooter takes damage during explosion
+      }
       this.dead = true; // Only set dead when the last frame of the dying sprite sheet is reached
     }
 
