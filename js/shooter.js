@@ -1,15 +1,19 @@
 import SpriteSheet from "./SpriteSheet.js";
+import Projectile from "./projectiles/projectile.js";
 
 export default class Shooter {
-  constructor(game) {
+  constructor(game, lives) {
     this.game = game;
     this.width = 56;
     this.height = 114;
     this.x = game.canvas.width * 0.5 - 56 * 0.5; // Example width
     this.y = game.canvas.height - (114 + 114 * 0.5); // Example height
     this.speed = 10;
-    this.lives = 10;
+    this.lives = lives;
     this.status = "moving"; // Initial status
+    this.projectiles = [];
+    this.numberOfProjecties = 10;
+    this.createProjectiles();
 
     // Initialize sprite sheets for different animations
     this.shootingSpriteSheet = new SpriteSheet(new Image(), 70, 56, 114, 4);
@@ -19,11 +23,15 @@ export default class Shooter {
     this.evasionSpriteSheet = new SpriteSheet(new Image(), 50, 56, 114, 9);
 
     // Load images for each sprite sheet
-    this.shootingSpriteSheet.image.src = "./images/bomber-attack1.png";
-    this.damagedSpriteSheet.image.src = "./images/bomber-damage.png";
-    this.destroyedSpriteSheet.image.src = "./images/bomber-destroyed.png";
-    this.movingSpriteSheet.image.src = "./images/bomber-move.png";
-    this.evasionSpriteSheet.image.src = "./images/bomber-evasion.png";
+    this.shootingSpriteSheet.image.src =
+      "../assets/images/game/bomber-attack1.png";
+    this.damagedSpriteSheet.image.src =
+      "../assets/images/game/bomber-damage.png";
+    this.destroyedSpriteSheet.image.src =
+      "../assets/images/game/bomber-destroyed.png";
+    this.movingSpriteSheet.image.src = "../assets/images/game/bomber-move.png";
+    this.evasionSpriteSheet.image.src =
+      "../assets/images/game/bomber-evasion.png";
 
     // Set the current sprite sheet to moving by default
     this.currentSpriteSheet = this.movingSpriteSheet;
@@ -34,7 +42,7 @@ export default class Shooter {
     this.isTurningRight = false;
 
     // Sound for shooting
-    this.shootSound = new Audio("./sounds/laser-gun.mp3"); // Load sound file
+    this.shootSound = new Audio("../assets/sounds/laser-gun.mp3"); // Load sound file
     this.shootSound.volume = 0.5; // Adjust volume (optional)
 
     // Motion lines (below the shooter)
@@ -72,6 +80,10 @@ export default class Shooter {
         this.currentSpriteSheet = this.movingSpriteSheet;
         break;
     }
+    this.projectiles.forEach((projectile) => {
+      projectile.draw(context);
+      projectile.move();
+    });
 
     // Draw the current frame of the selected sprite sheet
     this.currentSpriteSheet.draw(context, this.x, this.y);
@@ -89,9 +101,12 @@ export default class Shooter {
   update(timeElapsed) {
     if (
       this.status === "destroyed" &&
-      this.currentSpriteSheet.currentFrameX === 9
-    )
+      this.currentSpriteSheet.currentFrameX ===
+        this.currentSpriteSheet.framesX - 1
+    ) {
+      this.game.gameOver = true;
       return;
+    }
 
     this.currentSpriteSheet.update(timeElapsed);
 
@@ -134,23 +149,23 @@ export default class Shooter {
         }
       });
 
-    this.game.alienProjectiles.forEach((projectile) => {
-      if (!projectile.ready && this.game.checkCollision(this, projectile)) {
-        projectile.reset();
-        this.status = "damage";
-        this.lives--;
-      }
-    });
-
-    if (this.status === "damage" && this.currentSpriteSheet.currentFrameX > 9) {
-      this.status = "moving";
+    if (
+      this.status === "damage" &&
+      this.currentSpriteSheet.currentFrameX ===
+        this.currentSpriteSheet.framesX - 1
+    ) {
+      setTimeout(() => {
+        this.status = "moving"; // Delay transition to ensure the damage animation is noticeable
+      }, 200); // Adjust delay as needed
     }
 
     if (
       this.status === "shooting" &&
       this.currentSpriteSheet.currentFrameX >= 3
     ) {
-      this.status = "moving";
+      setTimeout(() => {
+        this.status = "moving"; // Delay transition to ensure the shooting animation is noticeable
+      }, 200);
     }
 
     if (this.lives < 1) {
@@ -158,13 +173,19 @@ export default class Shooter {
     }
   }
 
+  createProjectiles() {
+    for (let i = 0; i < this.numberOfProjecties; i++) {
+      this.projectiles.push(new Projectile());
+    }
+  }
+
   shoot() {
-    if (this.status === "damage" || this.status === "destroyed") return;
+    if (this.status === "destroyed") return;
     this.status = "shooting";
 
-    for (let i = 0; i < this.game.projectiles.length; i++) {
-      let projectile1 = this.game.projectiles[i];
-      let projectile2 = this.game.projectiles[i + 1];
+    for (let i = 0; i < this.projectiles.length; i++) {
+      let projectile1 = this.projectiles[i];
+      let projectile2 = this.projectiles[i + 1];
 
       if (projectile1.ready && projectile2.ready) {
         projectile1.start(

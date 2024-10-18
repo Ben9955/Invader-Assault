@@ -12,11 +12,12 @@ export default class Asteroid {
     this.exploded = false;
     this.status = "passive";
     this.image = new Image();
-    this.image.src = "./images/asteroid-base.png";
+    this.image.src = "../assets/images/game/asteroid-base.png";
 
     this.explodeSpriteSheet = new SpriteSheet(new Image(), 150, 96, 96, 8);
     // Load images for each sprite sheet
-    this.explodeSpriteSheet.image.src = "./images/asteroid-explode.png";
+    this.explodeSpriteSheet.image.src =
+      "../assets/images/game/asteroid-explode.png";
   }
 
   draw(context) {
@@ -29,7 +30,7 @@ export default class Asteroid {
   }
 
   update(timeElapsed) {
-    this.game.projectiles.forEach((projectile) => {
+    this.game.shooter.projectiles.forEach((projectile) => {
       if (!projectile.ready && this.game.checkCollision(this, projectile)) {
         this.exploding = true;
         projectile.reset();

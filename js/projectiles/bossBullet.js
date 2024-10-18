@@ -16,7 +16,7 @@ export default class BossBullet {
     this.spritSheetRows = 1;
     this.spritSheetColumns = 4;
     this.image = new Image();
-    this.image.src = "./images/boss-bullet.png";
+    this.image.src = "../assets/images/game/boss-bullet.png";
 
     this.frameInterval = 3; // Change frames every 10 game loops (adjust this to slow down)
     this.frameCounter = 0;
@@ -25,20 +25,22 @@ export default class BossBullet {
   draw(context) {
     // if (!this.ready) context.fillRect(this.x, this.y, this.width, this.height);
 
-    const sheetX = this.currentFrameX * this.frameWidth;
-    const sheetY = this.currentFrameY * this.frameHeight;
+    if (!this.ready) {
+      const sheetX = this.currentFrameX * this.frameWidth;
+      const sheetY = this.currentFrameY * this.frameHeight;
 
-    context.drawImage(
-      this.image,
-      sheetX,
-      sheetY,
-      this.frameWidth,
-      this.frameHeight,
-      this.x,
-      this.y,
-      this.width,
-      this.height
-    );
+      context.drawImage(
+        this.image,
+        sheetX,
+        sheetY,
+        this.frameWidth,
+        this.frameHeight,
+        this.x,
+        this.y,
+        this.width,
+        this.height
+      );
+    }
   }
 
   move() {

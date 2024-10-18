@@ -15,7 +15,6 @@ export default class Blob {
     this.lives = this.maxLives;
     this.status = "passive";
     this.dead = false;
-    this.isDying = false;
 
     this.passiveSpriteSheet = new SpriteSheet(new Image(), 100, 200, 244, 9, 4);
     this.explodingSpriteSheet = new SpriteSheet(
@@ -28,8 +27,10 @@ export default class Blob {
     );
 
     // Load images for each sprite sheet
-    this.explodingSpriteSheet.image.src = "./images/blob-alien-explode.png";
-    this.passiveSpriteSheet.image.src = "./images/blob-alien-passive.png";
+    this.explodingSpriteSheet.image.src =
+      "../assets/images/game/blob-alien-explode.png";
+    this.passiveSpriteSheet.image.src =
+      "../assets/images/game/blob-alien-passive.png";
 
     this.passiveSpriteSheet.width = this.passiveSpriteSheet.width / 2;
     this.passiveSpriteSheet.height = this.passiveSpriteSheet.height / 2;
@@ -38,7 +39,9 @@ export default class Blob {
     this.currentSpriteSheet = this.passiveSpriteSheet;
 
     // Sound explosion
-    this.explosion = new Audio("./sounds/mixkit-sea-mine-explosion-1184.wav"); // Load sound file
+    this.explosion = new Audio(
+      "../assets/sounds/mixkit-sea-mine-explosion-1184.wav"
+    ); // Load sound file
     this.explosion.volume = 1; // Adjust volume (optional)
   }
 
@@ -78,18 +81,22 @@ export default class Blob {
   }
 
   update(timeElapsed) {
+    if (this.dead) return;
+
     this.currentSpriteSheet.update(timeElapsed);
 
-    this.game.projectiles.forEach((projectile) => {
-      if (
-        !projectile.ready &&
-        this.game.checkCollision(this, projectile) &&
-        this.lives > 0
-      ) {
-        projectile.reset();
-        this.lives--;
-      }
-    });
+    if (this.y >= 0) {
+      this.game.shooter.projectiles.forEach((projectile) => {
+        if (
+          !projectile.ready &&
+          this.game.checkCollision(this, projectile) &&
+          this.lives > 0
+        ) {
+          projectile.reset();
+          this.lives--;
+        }
+      });
+    }
 
     // Check for collisions with the shooter
     if (this.game.checkCollision(this, this.game.shooter)) {
@@ -115,6 +122,8 @@ export default class Blob {
       if (this.collisionWithShooter) {
         this.game.shooter.applyDamage(this.explosionDamage); // Shooter takes damage during explosion
       }
+
+      this.game.score++;
       this.dead = true; // Only set dead when the last frame of the dying sprite sheet is reached
     }
 

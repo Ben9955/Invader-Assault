@@ -4,7 +4,7 @@ export default class Beetlemorph {
     this.width = 30;
     this.height = 30;
     this.x = x > this.game.width - this.width ? x - this.width : x;
-    this.y = y;
+    this.y = 5;
     this.speedY = 1.5;
     this.speedX = 1.5;
 
@@ -17,13 +17,13 @@ export default class Beetlemorph {
     this.frameY = 0;
     this.maxFrame = 2;
     this.image = new Image();
-    this.image.src = "./images/beetlemorph.png";
+    this.image.src = "../assets/images/game/beetlemorph.png";
 
     this.reverseTimer = 0;
     this.frameChangeTimer = 0;
 
     // Sound explosion
-    this.explosionSound = new Audio("./sounds/explosion-alien1.mp3"); // Load sound file
+    this.explosionSound = new Audio("../assets/sounds/explosion-alien1.mp3"); // Load sound file
     this.explosionSound.volume = 1; // Adjust volume (optional)
   }
 
@@ -58,7 +58,7 @@ export default class Beetlemorph {
     this.reverseTimer += timeElapsed;
     if (this.dead) return;
 
-    this.game.projectiles.forEach((projectile) => {
+    this.game.shooter.projectiles.forEach((projectile) => {
       if (
         !projectile.ready &&
         this.game.checkCollision(this, projectile) &&
@@ -92,6 +92,6 @@ export default class Beetlemorph {
         this.reverseTimer = 0;
       }
       this.x += this.speedX;
-    } else this.y += this.game.background.speedY + this.speedY;
+    } else this.y += this.speedY;
   }
 }

@@ -7,7 +7,7 @@ export default class PowerUp {
     this.height = 50; // Adjust as needed
     this.type = this.randomType();
     this.image = new Image();
-    this.image.src = `./images/powerup-${this.type}.png`; // Image based on type
+    this.image.src = `../assets/images/game/powerup-${this.type}.png`; // Image based on type
   }
 
   randomType() {

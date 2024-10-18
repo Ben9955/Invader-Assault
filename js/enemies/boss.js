@@ -1,110 +1,106 @@
+import SpriteSheet from "../SpriteSheet.js";
+import BossBullet from "../projectiles/bossBullet.js";
+
 export default class Boss {
-  constructor(game) {
+  constructor(game, x, y) {
     this.game = game;
     this.width = 200;
     this.height = 212;
-    this.x = 250;
-    this.y = 20;
-    this.speed = 2;
-    this.lives = 5;
+    this.x = x + this.width >= this.game.width ? x - this.width : x;
+    this.y = y;
+    this.speed = 5;
+    this.speedY = 2;
+    this.maxLives = 10;
+    this.lives = this.maxLives;
+    this.hasShot = false; // Flag to track if the boss has shot during the current frame
+    this.status = "firing";
     this.dead = false;
-    this.isDying = false;
+    this.projectiles = []; // Array to store boss bullets
 
-    // Sprite sheet details
-    this.frameWidth = 250;
-    this.frameHeight = 265;
-    this.currentFrameX = 0;
-    this.currentFrameY = 0;
-    this.spritSheetRows = 2;
-    this.spritSheetColumns = 13;
-    this.image = new Image();
-    this.image.src = "./images/boss-firing.png";
+    this.dyingSpriteSheet = new SpriteSheet(new Image(), 200, 250, 265, 6, 2);
+    this.firingSpriteSheet = new SpriteSheet(new Image(), 50, 250, 265, 13, 2);
 
-    this.dyingFrameWidth = 250;
-    this.dyingFrameHeight = 265;
-    this.dyingSpritSheetRows = 2;
-    this.dyingSpritSheetColumns = 6;
-    this.dyingImage = new Image();
-    this.dyingImage.src = "./images/boss-dying.png";
+    // Load images for each sprite sheet
+    this.firingSpriteSheet.image.src = "../assets/images/game/boss-firing.png";
+    this.dyingSpriteSheet.image.src = "../assets/images/game/boss-dying.png";
 
-    // Animation control
-    this.frameInterval = 2; // Change frames every 10 game loops (adjust this to slow down)
-    this.frameCounter = 0;
+    this.currentSpriteSheet = this.firingSpriteSheet;
+
+    this.createProjectiles();
   }
 
   draw(context) {
-    // if (this.dead) return;
-    const sheetX = this.currentFrameX * this.frameWidth;
-    const sheetY = this.currentFrameY * this.frameHeight;
+    if (this.status === "firing") {
+      this.currentSpriteSheet = this.firingSpriteSheet;
+      this.projectiles.forEach((projectile) => {
+        projectile.draw(context);
+        projectile.move();
+      });
+    } else this.currentSpriteSheet = this.dyingSpriteSheet;
 
-    context.drawImage(
-      this.image,
-      sheetX,
-      sheetY,
-      this.frameWidth,
-      this.frameHeight,
-      this.x,
-      this.y,
-      this.width,
-      this.height
-    );
+    // Draw the current frame of the selected sprite sheet
+    if (this.currentSpriteSheet)
+      this.currentSpriteSheet.draw(context, this.x, this.y);
   }
 
-  update() {
+  update(timeElapsed) {
     if (this.dead) return;
 
-    this.updateFrame();
-    this.game.projectiles.forEach((projectile) => {
+    this.currentSpriteSheet.update(timeElapsed);
+
+    if (this.y >= 0) {
+      this.game.shooter.projectiles.forEach((projectile) => {
+        if (
+          !projectile.ready &&
+          this.game.checkCollision(this, projectile) &&
+          this.lives > 0
+        ) {
+          projectile.reset();
+          this.lives--;
+        }
+      });
+    }
+
+    this.projectiles.forEach((projectile) => {
       if (
         !projectile.ready &&
-        this.game.checkCollision(this, projectile) &&
-        this.lives > 0
+        this.game.checkCollision(this.game.shooter, projectile)
       ) {
         projectile.reset();
-        this.lives--;
+        this.game.shooter.applyDamage(1);
       }
     });
 
     if (this.lives < 1) {
-      this.image = this.dyingImage;
-      this.frameHeight = this.dyingFrameHeight;
-      this.frameWidth = this.dyingFrameWidth;
-      this.spritSheetColumns = this.dyingSpritSheetColumns;
-      this.spritSheetRows = this.dyingSpritSheetRows;
-      this.isDying = true;
+      this.status = "dying";
     }
 
     if (
-      this.isDying &&
-      this.currentFrameX === this.spritSheetColumns - 1 &&
-      this.currentFrameY === this.spritSheetRows - 1
+      this.status === "dying" &&
+      this.currentSpriteSheet.currentFrameX ===
+        this.currentSpriteSheet.framesX - 1 &&
+      this.currentSpriteSheet.currentFrameY ===
+        this.currentSpriteSheet.framesY - 1
     ) {
       this.dead = true; // Only set dead when the last frame of the dying sprite sheet is reached
     }
 
-    if (!this.isDying && this.currentFrameX === 3 && this.currentFrameY === 1) {
-      this.shoot();
+    if (
+      this.game.shooter.lives > 0 &&
+      this.status === "firing" &&
+      this.currentSpriteSheet.currentFrameX === 3 &&
+      this.currentSpriteSheet.currentFrameY === 1
+    ) {
+      if (!this.hasShot) {
+        // Check if the boss hasn't shot yet in this frame
+        this.shoot();
+        this.hasShot = true; // Set the flag to indicate the boss has shot
+      }
+    } else {
+      this.hasShot = false; // Reset the flag when the boss leaves the firing frame
     }
 
     this.move();
-  }
-
-  updateFrame() {
-    // Increment the frame counter
-    this.frameCounter++;
-
-    // Only change frames when frameCounter reaches the frameInterval
-    if (this.frameCounter >= this.frameInterval) {
-      this.frameCounter = 0; // Reset the frame counter
-
-      // Update the current frame
-      this.currentFrameX = (this.currentFrameX + 1) % this.spritSheetColumns;
-
-      // Move to the next row when the current row is done
-      if (this.currentFrameX === 0) {
-        this.currentFrameY = (this.currentFrameY + 1) % this.spritSheetRows;
-      }
-    }
   }
 
   move() {
@@ -128,7 +124,13 @@ export default class Boss {
       this.x += this.speed;
     } else {
       this.speed *= -1;
-      //   this.y += this.height * 0.5;
+      this.y += this.height * 0.5;
+    }
+  }
+
+  createProjectiles() {
+    for (let i = 0; i < 3; i++) {
+      this.projectiles.push(new BossBullet(this.game));
     }
   }
 
@@ -136,8 +138,8 @@ export default class Boss {
   shoot() {
     const x = this.x + this.width * 0.3;
     const y = this.y + this.height * 0.8;
-    for (let i = 0; i < this.game.bossProjectiles.length; i++) {
-      let projectile = this.game.bossProjectiles[i];
+    for (let i = 0; i < this.projectiles.length; i++) {
+      let projectile = this.projectiles[i];
       if (projectile.ready) {
         projectile.start(x, y);
         return;

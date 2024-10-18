@@ -1,4 +1,5 @@
 import SpriteSheet from "../SpriteSheet.js";
+import AlienBullet from "../projectiles/alienBullet.js";
 
 export default class AlienShooter {
   constructor(game, x, y) {
@@ -13,15 +14,21 @@ export default class AlienShooter {
     this.lives = this.maxLives;
     this.status = "passive";
     this.dead = false;
+    this.projectiles = [];
+    this.numberOfProjecties = 6;
+    this.createProjectiles();
 
     this.passiveSpriteSheet = new SpriteSheet(new Image(), 100, 354, 318, 7, 4);
     this.shootingSpriteSheet = new SpriteSheet(new Image(), 50, 354, 354, 5, 5);
     this.dyingSpriteSheet = new SpriteSheet(new Image(), 50, 354, 318, 7, 2);
 
     // Load images for each sprite sheet
-    this.shootingSpriteSheet.image.src = "./images/gun-alien-firing.png";
-    this.dyingSpriteSheet.image.src = "./images/gun-alien-dying.png";
-    this.passiveSpriteSheet.image.src = "./images/gun-alien-passive.png";
+    this.shootingSpriteSheet.image.src =
+      "../assets/images/game/gun-alien-firing.png";
+    this.dyingSpriteSheet.image.src =
+      "../assets/images/game/gun-alien-dying.png";
+    this.passiveSpriteSheet.image.src =
+      "../assets/images/game/gun-alien-passive.png";
 
     this.passiveSpriteSheet.width = this.passiveSpriteSheet.width / 2;
     this.passiveSpriteSheet.height = this.passiveSpriteSheet.height / 2;
@@ -34,7 +41,7 @@ export default class AlienShooter {
     this.currentSpriteSheet = this.passiveSpriteSheet;
 
     // Sound explosion
-    this.monsterScream = new Audio("./sounds/enemy-death.wav"); // Load sound file
+    this.monsterScream = new Audio("../assets/sounds/enemy-death.wav"); // Load sound file
     this.monsterScream.volume = 1; // Adjust volume (optional)
 
     // Shooting control
@@ -57,6 +64,11 @@ export default class AlienShooter {
         this.currentSpriteSheet = this.passiveSpriteSheet;
         break;
     }
+
+    this.projectiles.forEach((projectile) => {
+      projectile.draw(context);
+      projectile.move();
+    });
 
     // Draw the current frame of the selected sprite sheet
     if (this.currentSpriteSheet)
@@ -86,6 +98,8 @@ export default class AlienShooter {
   }
 
   update(timeElapsed) {
+    if (this.dead) return;
+
     this.currentSpriteSheet.update(timeElapsed);
 
     const shooterPosition = this.game.shooter.x + this.game.shooter.width * 0.5;
@@ -96,16 +110,27 @@ export default class AlienShooter {
       this.status = "passive";
     }
 
-    this.game.projectiles.forEach((projectile) => {
+    this.projectiles.forEach((projectile) => {
       if (
         !projectile.ready &&
-        this.game.checkCollision(this, projectile) &&
-        this.lives > 0
+        this.game.checkCollision(this.game.shooter, projectile)
       ) {
         projectile.reset();
-        this.lives--;
+        this.game.shooter.applyDamage(1);
       }
     });
+
+    if (this.y >= 0)
+      this.game.shooter.projectiles.forEach((projectile) => {
+        if (
+          !projectile.ready &&
+          this.game.checkCollision(this, projectile) &&
+          this.lives > 0
+        ) {
+          projectile.reset();
+          this.lives--;
+        }
+      });
 
     if (this.lives < 1) {
       // Play sound
@@ -121,6 +146,7 @@ export default class AlienShooter {
       this.currentSpriteSheet.currentFrameY ===
         this.currentSpriteSheet.framesY - 1
     ) {
+      this.game.score++;
       this.dead = true; // Only set dead when the last frame of the dying sprite sheet is reached
     }
 
@@ -193,15 +219,21 @@ export default class AlienShooter {
     }
   }
 
+  createProjectiles() {
+    for (let i = 0; i < this.numberOfProjecties; i++) {
+      this.projectiles.push(new AlienBullet(this.game));
+    }
+  }
+
   shoot() {
     const x = this.x + 20;
     const y = this.y + this.shootingSpriteSheet.height * 0.8;
 
-    for (let i = 0; i < this.game.alienProjectiles.length; i++) {
-      let projectile = this.game.alienProjectiles[i];
+    for (let i = 0; i < this.projectiles.length; i++) {
+      let projectile = this.projectiles[i];
       if (projectile.ready) {
         projectile.start(x, y);
-        this.game.alienProjectiles[i + 1].start(this.x + this.width - 20, y);
+        this.projectiles[i + 1].start(this.x + this.width - 20, y);
         return;
       }
     }
