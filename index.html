@@ -1,14 +1,113 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Invader Assault</title>
+    <script
+      src="https://kit.fontawesome.com/fc5d0bceec.js"
+      crossorigin="anonymous"
+    ></script>
     <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
-    <canvas id="myCanvas"></canvas>
+    <nav>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="enemies-objects.html">Enemies & Objects</a></li>
+        <li><a href="game.html">Login</a></li>
+      </ul>
+    </nav>
 
-    <script type="module" src="./script.js"></script>
+    <main>
+      <section class="home" id="home">
+        <h1>Welcome to Invader Assault</h1>
+        <p>Invader Assault is an action-packed space shooter game...</p>
+        <p>Ready to take on the invaders?</p>
+        <a href="#login">Log in now!</a>
+      </section>
+    </main>
+
+    <footer>
+      <p>&copy; 2024 Invader Assault. All rights reserved.</p>
+    </footer>
+  </body>
+</html> -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Space Assault</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <!-- Navbar -->
+    <header class="navbar">
+      <div class="navbar__logo">Space Assault</div>
+      <nav>
+        <ul class="navbar__menu">
+          <li><a href="index.html" class="active">Home</a></li>
+          <li><a href="about.html">About</a></li>
+          <li><a href="assets.html">Assets</a></li>
+          <li><a href="scores.html">Scores</a></li>
+          <li><a href="game.html" class="play-now">Play Now</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+      <h1>Embark on the Ultimate Space Assault!</h1>
+      <p>
+        Defend the galaxy from ruthless alien invaders. Gather power-ups, face
+        thrilling levels, and secure your place in the cosmos.
+      </p>
+      <a href="game.html" class="btn">Play Now</a>
+    </section>
+
+    <!-- Game Highlights Section -->
+    <section class="cards">
+      <h2>Game Highlights</h2>
+      <div class="cards__container">
+        <div class="card">
+          <img
+            src="assets/images/gui/icons8-alien-96.png"
+            alt="Alien Enemies"
+          />
+          <h3>Alien Enemies</h3>
+          <p>
+            Battle a wide array of alien foes, each with unique strengths and
+            weaknesses.
+          </p>
+        </div>
+        <div class="card">
+          <img src="assets/images/gui/icons8-up-arrow-96.png" alt="Power-Ups" />
+          <h3>Power-Ups</h3>
+          <p>
+            Collect cosmic power-ups to boost your spacecraft’s abilities and
+            turn the tide in your favor.
+          </p>
+        </div>
+        <div class="card">
+          <img
+            src="./assets/images/gui/icons8-space-fighter-96.png"
+            alt="Spacecraft"
+          />
+          <h3>Spacecraft</h3>
+          <p>
+            Control your own powerful spacecraft designed to withstand
+            intergalactic battles.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+      <p>Space Assault &copy; 2024. All Rights Reserved.</p>
+    </footer>
   </body>
 </html>
