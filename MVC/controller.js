@@ -269,6 +269,8 @@ export default class GameController {
     document.querySelector(".btn-pause").style.display = "none";
     document.querySelector("#myCanvas").style.display = "none";
     document.querySelector(".overlay").style.display = "none";
+    const controls = document.querySelector(".controls");
+    controls.style.display = "none";
 
     const gamePauseWindow = document.querySelector(".pause-window");
     if (gamePauseWindow) gamePauseWindow.remove();

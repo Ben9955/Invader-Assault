@@ -131,6 +131,8 @@ export default class Game {
       const index = this.keys.indexOf(e.key);
       if (index > -1) this.keys.splice(index, 1);
     });
+
+    if (window.innerWidth <= 500) this.setupTouchControls();
   }
 
   // Render the game state
@@ -391,5 +393,54 @@ export default class Game {
   playGameWonSound() {
     this.gameWonSound.currentTime = 0;
     this.gameWonSound.play();
+  }
+
+  // this controls are for small screens
+
+  setupTouchControls() {
+    const controls = document.querySelector(".controls");
+    controls.style.display = "flex";
+    const moveLeftButton = document.getElementById("move-left");
+    const moveRightButton = document.getElementById("move-right");
+    const shootButton = document.getElementById("shoot");
+
+    // Start moving left on touchstart, stop on touchend
+    moveLeftButton.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      if (!this.keys.includes("ArrowLeft")) {
+        this.keys.push("ArrowLeft");
+      }
+    });
+    moveLeftButton.addEventListener("touchend", (e) => {
+      e.preventDefault();
+      const index = this.keys.indexOf("ArrowLeft");
+      if (index > -1) this.keys.splice(index, 1);
+    });
+
+    // Start moving right on touchstart, stop on touchend
+    moveRightButton.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      if (!this.keys.includes("ArrowRight")) {
+        this.keys.push("ArrowRight");
+      }
+    });
+    moveRightButton.addEventListener("touchend", (e) => {
+      e.preventDefault();
+      const index = this.keys.indexOf("ArrowRight");
+      if (index > -1) this.keys.splice(index, 1);
+    });
+
+    // Shoot on touchstart, stop on touchend
+    shootButton.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      if (!this.fired) {
+        this.shooter.shoot();
+        this.fired = true;
+      }
+    });
+    shootButton.addEventListener("touchend", (e) => {
+      e.preventDefault();
+      this.fired = false;
+    });
   }
 }

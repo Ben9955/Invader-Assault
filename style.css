@@ -850,3 +850,32 @@ form button:active {
 .hamburger.active span:nth-child(3) {
   transform: rotate(-45deg) translate(5px, -5px);
 }
+
+/* controlls for small screen */
+.controls {
+  position: fixed;
+  bottom: 10%;
+  width: 100%;
+  display: none;
+  justify-content: space-between;
+  padding: 0 20px;
+  pointer-events: none; /* Avoid interfering with other elements */
+}
+
+.control-button {
+  width: 60px;
+  height: 60px;
+  font-size: 24px;
+  background-color: rgba(255, 255, 255, 0.8);
+  border: none;
+  border-radius: 50%;
+  pointer-events: auto; /* Enable touch events */
+}
+
+#moveLeft {
+  margin-right: 1rem;
+}
+
+.shoot-button {
+  background-color: rgba(255, 0, 0, 0.8);
+}
