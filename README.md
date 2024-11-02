@@ -4,7 +4,7 @@ A single-player browser-based game. The game is developed using HTML, CSS, and J
 
 ## Key Features
 
-- **Single Player**: Play alone.
+- **Single Player!**: Play alone.
 - **Scoreboard**: Displays top scores of all registered users.
 - **User Authentication**: Users can register, log in, and have their data saved.
 - **Local Storage**: Scores and user data are saved in HTML local storage.
@@ -13,3 +13,7 @@ A single-player browser-based game. The game is developed using HTML, CSS, and J
 
 - **HTML/CSS/JavaScript**: Core technologies for game structure, design, and logic.
 - **Local Storage**: Stores scores and user data in JSON format.
+
+## Link
+
+https://invaderassault.netlify.app/
