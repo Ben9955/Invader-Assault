@@ -67,6 +67,21 @@ export default class Game {
         AlienShooter: 2,
       },
       {
+        Beetlemorph: 4,
+        AlienShooter: 2,
+        Blob: 3,
+      },
+      {
+        Beetlemorph: 5,
+        Blob: 2,
+        AlienShooter: 4,
+      },
+      {
+        Beetlemorph: 7,
+        Blob: 4,
+        AlienShooter: 3,
+      },
+      {
         Boss: 1,
       },
     ];

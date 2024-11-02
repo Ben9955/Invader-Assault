@@ -65,4 +65,15 @@ class ScoresController {
 }
 
 // Instantiate the controller to load scores on page load
-document.addEventListener("DOMContentLoaded", () => new ScoresController());
+document.addEventListener("DOMContentLoaded", () => {
+  new ScoresController();
+
+  console.log("fdd");
+  const hamburger = document.getElementById("hamburger");
+  const navbarMenu = document.querySelector(".navbar__menu");
+
+  hamburger.addEventListener("click", () => {
+    navbarMenu.classList.toggle("active");
+    hamburger.classList.toggle("active");
+  });
+});
