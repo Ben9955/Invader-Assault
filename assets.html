@@ -12,13 +12,18 @@
       <div class="navbar__logo">Space Assault</div>
       <nav>
         <ul class="navbar__menu">
-          <li><a href="index.html">Home</a></li>
+          <li><a href="index.html" class="active">Home</a></li>
           <li><a href="about.html">About</a></li>
-          <li><a href="assets.html" class="active">Assets</a></li>
+          <li><a href="assets.html">Assets</a></li>
           <li><a href="scores.html">Scores</a></li>
           <li><a href="game.html" class="play-now">Play Now</a></li>
         </ul>
       </nav>
+      <div class="hamburger" id="hamburger">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
     </header>
 
     <section class="enemies-objects">
@@ -181,5 +186,18 @@
     <footer>
       <p>Space Assault &copy; 2024. All Rights Reserved.</p>
     </footer>
+
+    <script>
+      // Inline JavaScript for hamburger menu
+      document.addEventListener("DOMContentLoaded", function () {
+        const hamburger = document.getElementById("hamburger");
+        const navbarMenu = document.querySelector(".navbar__menu");
+
+        hamburger.addEventListener("click", () => {
+          navbarMenu.classList.toggle("active");
+          hamburger.classList.toggle("active");
+        });
+      });
+    </script>
   </body>
 </html>

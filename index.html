@@ -1,40 +1,3 @@
-<!-- <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Invader Assault</title>
-    <script
-      src="https://kit.fontawesome.com/fc5d0bceec.js"
-      crossorigin="anonymous"
-    ></script>
-    <link rel="stylesheet" href="./style.css" />
-  </head>
-  <body>
-    <nav>
-      <ul>
-        <li><a href="index.html">Home</a></li>
-        <li><a href="about.html">About</a></li>
-        <li><a href="enemies-objects.html">Enemies & Objects</a></li>
-        <li><a href="game.html">Login</a></li>
-      </ul>
-    </nav>
-
-    <main>
-      <section class="home" id="home">
-        <h1>Welcome to Invader Assault</h1>
-        <p>Invader Assault is an action-packed space shooter game...</p>
-        <p>Ready to take on the invaders?</p>
-        <a href="#login">Log in now!</a>
-      </section>
-    </main>
-
-    <footer>
-      <p>&copy; 2024 Invader Assault. All rights reserved.</p>
-    </footer>
-  </body>
-</html> -->
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -44,7 +7,6 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <!-- Navbar -->
     <header class="navbar">
       <div class="navbar__logo">Space Assault</div>
       <nav>
@@ -56,8 +18,12 @@
           <li><a href="game.html" class="play-now">Play Now</a></li>
         </ul>
       </nav>
+      <div class="hamburger" id="hamburger">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
     </header>
-
     <!-- Hero Section -->
     <section class="hero">
       <h1>Embark on the Ultimate Space Assault!</h1>
@@ -109,5 +75,18 @@
     <footer>
       <p>Space Assault &copy; 2024. All Rights Reserved.</p>
     </footer>
+
+    <script>
+      // Inline JavaScript for hamburger menu
+      document.addEventListener("DOMContentLoaded", function () {
+        const hamburger = document.getElementById("hamburger");
+        const navbarMenu = document.querySelector(".navbar__menu");
+
+        hamburger.addEventListener("click", () => {
+          navbarMenu.classList.toggle("active");
+          hamburger.classList.toggle("active");
+        });
+      });
+    </script>
   </body>
 </html>
