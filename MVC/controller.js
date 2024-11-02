@@ -21,14 +21,14 @@ export const spaceships = [
   {
     name: "corvette",
     imgSrc: "../../assets/images/gui/corvette-Idle.png",
-    xpRequired: 50,
+    xpRequired: 300,
     speed: 120,
     health: 90,
   },
   {
     name: "fighter",
     imgSrc: "../../assets/images/gui/fighter-Idle.png",
-    xpRequired: 100,
+    xpRequired: 1000,
     speed: 140,
     health: 100,
   },

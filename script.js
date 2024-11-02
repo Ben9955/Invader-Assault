@@ -1,27 +1,14 @@
-// "use strict";
+import GameController from "./MVC/controller.js";
 
-import Game from "./js/game.js";
-
-const canvas = document.getElementById("myCanvas");
+// Wait for the DOM to load before initializing the controller
 window.addEventListener("load", () => {
-  const ctx = canvas.getContext("2d");
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-  ctx.fillStyle = "white";
-  ctx.strokeStyle = "white";
-  ctx.lineWidth = 5;
-  ctx.font = "30px Impact";
-  const game = new Game(canvas);
+  const gameController = new GameController(); // This will call init() automatically
 
-  let lastTime = 0;
+  const hamburger = document.getElementById("hamburger");
+  const navbarMenu = document.querySelector(".navbar__menu");
 
-  function animate(timeStamp) {
-    const timeElapsed = timeStamp - lastTime;
-    lastTime = timeStamp;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    game.render(ctx, timeElapsed);
-    requestAnimationFrame(animate);
-  }
-
-  animate(0);
+  hamburger.addEventListener("click", () => {
+    navbarMenu.classList.toggle("active");
+    hamburger.classList.toggle("active");
+  });
 });
